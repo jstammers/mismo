@@ -19,9 +19,18 @@ def all_possible_pairs(
     seed: int | None = None,
 ) -> Table:
     """Blocks together all possible pairs of records."""
+    left = left.view()
+    right = right.view()
+    n_left = left.count().execute()
+    n_right = right.count().execute()
+
+    if n_left * n_right > max_pairs:
+        frac = max_pairs / (n_left * n_right)
+        left = sample_table(left, n_approx=int(n_left * frac), seed=seed)
+        right = sample_table(right, n_approx=int(n_right * frac), seed=seed)
+
     pairs = block_one(left, right, True, on_slow="ignore")
-    n_pairs = _min_ignore_None(pairs.count().execute(), max_pairs)
-    return sample_table(pairs, n_pairs, seed=seed)
+    return pairs
 
 
 def true_pairs_from_labels(left: Table, right: Table) -> Table:
